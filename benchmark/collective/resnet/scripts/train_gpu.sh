@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLAGS_sync_nccl_allreduce=1
+export FLAGS_sync_nccl_allreduce=0
 export FLAGS_cudnn_exhaustive_search=0
 
 export GLOG_v=1

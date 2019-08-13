@@ -24,7 +24,6 @@ nccl_version=2.3
 use_hierarchical_allreduce=False
 profile=True
 batch_size=32
-lr=0.1
 
 while true ; do
   case "$1" in
@@ -35,7 +34,6 @@ while true ; do
     -num_trainers) num_trainers="$2" ; shift 2 ;;
     -num_cards) num_cards="$2" ; shift 2 ;;
     -num_epochs) num_epochs="$2" ; shift 2 ;;
-    -lr) num_epochs="$2" ; shift 2 ;;
     -card_type) card_type="$2" ; shift 2 ;;
     -whl_name) whl_name="$2" ; shift 2 ;;
     -dataset_path) dataset_path="$2" ; shift 2 ;;
@@ -78,30 +76,29 @@ case "${fp16}" in
     False) ;;
     *) echo "not support argument -method: ${fp16}" ; exit 1 ;;
 esac
-sed -i "s:^\(use_fp16\s*=\s*\).*$:\1${fp16}:" cloud_job_conf.py
+sed -i "s:^\(use_fp16\s*=\s*\).*$:\1${fp16}:" config.ini
 
 case "${fuse}" in 
     True) ;;
     False) ;;
     *) echo "not support argument -method: ${fuse}" ; exit 1 ;;
 esac
-sed -i "s:^\(fuse\s*=\s*\).*$:\1${fuse}:" cloud_job_conf.py
+sed -i "s:^\(fuse\s*=\s*\).*$:\1${fuse}:" config.ini
 
 
-sed -i "s:^\(nodes\s*=\s*\).*$:\1${num_trainers}:" cloud_job_conf.py
-#sed -i "s:^\(shuffle_files\s*=\s*\).*$:\1${shuffle_files}:" cloud_job_conf.py
-sed -i "s:^\(nccl_comm_num\s*=\s*\).*$:\1${nccl_comm_num}:" cloud_job_conf.py
+sed -i "s:^\(nodes\s*=\s*\).*$:\1${num_trainers}:" config.ini
+#sed -i "s:^\(shuffle_files\s*=\s*\).*$:\1${shuffle_files}:" config.ini
+sed -i "s:^\(nccl_comm_num\s*=\s*\).*$:\1${nccl_comm_num}:" config.ini
 echo "num_threads:${num_threads}"
-sed -i "s:^\(num_threads\s*=\s*\).*$:\1${num_threads}:" cloud_job_conf.py
-sed -i "s:^\(nccl_version\s*=\s*\).*$:\1${nccl_version}:" cloud_job_conf.py
-sed -i "s:^\(use_hierarchical_allreduce\s*=\s*\).*$:\1${use_hierarchical_allreduce}:" cloud_job_conf.py
-#sed -i "s:^\(hierarchical_allreduce_inter_nranks\s*=\s*\).*$:\1${hierarchical_allreduce_inter_nranks}:" cloud_job_conf.py
-#sed -i "s:^\(enable_backward_op_deps\s*=\s*\).*$:\1${enable_backward_op_deps}:" cloud_job_conf.py
-sed -i "s:^\(profile\s*=\s*\).*$:\1${profile}:" cloud_job_conf.py
-sed -i "s:^\(num_cards\s*=\s*\).*$:\1${num_cards}:" cloud_job_conf.py
-sed -i "s:^\(num_epochs\s*=\s*\).*$:\1${num_epochs}:" cloud_job_conf.py
-sed -i "s:^\(batch_size\s*=\s*\).*$:\1${batch_size}:" cloud_job_conf.py
-sed -i "s:^\(lr\s*=\s*\).*$:\1${lr}:" cloud_job_conf.py
+sed -i "s:^\(num_threads\s*=\s*\).*$:\1${num_threads}:" config.ini
+sed -i "s:^\(nccl_version\s*=\s*\).*$:\1${nccl_version}:" config.ini
+sed -i "s:^\(use_hierarchical_allreduce\s*=\s*\).*$:\1${use_hierarchical_allreduce}:" config.ini
+#sed -i "s:^\(hierarchical_allreduce_inter_nranks\s*=\s*\).*$:\1${hierarchical_allreduce_inter_nranks}:" config.ini
+#sed -i "s:^\(enable_backward_op_deps\s*=\s*\).*$:\1${enable_backward_op_deps}:" config.ini
+sed -i "s:^\(profile\s*=\s*\).*$:\1${profile}:" config.ini
+sed -i "s:^\(num_cards\s*=\s*\).*$:\1${num_cards}:" config.ini
+sed -i "s:^\(num_epochs\s*=\s*\).*$:\1${num_epochs}:" config.ini
+sed -i "s:^\(batch_size\s*=\s*\).*$:\1${batch_size}:" config.ini
 
 case "$card_type" in 
     gpu_v100) 
@@ -123,12 +120,12 @@ source ${user_conf}
 
 if [[ ${whl_name} != "" ]]; then
     echo "set whl_name:" ${whl_name}
-    sed -i "s/^\(whl_name\s*=\s*\).*$/\1${whl_name}/" cloud_job_conf.py
+    sed -i "s/^\(whl_name\s*=\s*\).*$/\1${whl_name}/" config.ini
 fi
 
 if [[ ${dataset_path} != "" ]]; then
     echo "set dataset_path:" ${dataset_path}
-    sed -i "s:^\(dataset_path\s*=\s*\).*$:\1${dataset_path}:" cloud_job_conf.py
+    sed -i "s:^\(dataset_path\s*=\s*\).*$:\1${dataset_path}:" config.ini
 fi
 
 
@@ -164,11 +161,12 @@ paddlecloud job \
     --k8s-memory 190Gi \
     --job-name ${job_name} \
     --start-cmd "bash cloudenv/train_pretrain.sh" \
-    --job-conf cloud_job_conf.py \
+    --job-conf config.ini \
     --files  before_hook.sh end_hook.sh \
     --k8s-trainers ${num_trainers} ${distribute} \
     --k8s-cpu-cores 35 \
     --image-addr "${image_addr}"
+
 
 
 
