@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLAGS_sync_nccl_allreduce=1
+export FLAGS_sync_nccl_allreduce=0
 export FLAGS_cudnn_exhaustive_search=0
 
 export GLOG_v=1
@@ -21,7 +21,7 @@ LR=0.001
 LR_STRATEGY=piecewise_decay
 
 # data params
-DATA_PATH="./ImageNet"
+DATA_PATH="/fengdanlei/ImageNet"
 TOTAL_IMAGES=1281167
 CLASS_DIM=1000
 IMAGE_SHAPE=3,224,224
@@ -32,7 +32,7 @@ FUSE=True
 NCCL_COMM_NUM=1
 NUM_THREADS=2
 USE_HIERARCHICAL_ALLREDUCE=False
-NUM_CARDS=1
+NUM_CARDS=8
 FP16=False #whether to use float16 
 
 if [[ ${FUSE} == "True" ]]; then

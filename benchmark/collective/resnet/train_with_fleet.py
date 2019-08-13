@@ -580,6 +580,7 @@ def main():
     print_paddle_environments()
     args.dist_env = dist_env()
     check_gpu(args.use_gpu)
+    #time.sleep(43200)
     train(args)
 
 

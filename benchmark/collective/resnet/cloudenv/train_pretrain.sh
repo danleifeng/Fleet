@@ -38,14 +38,15 @@ python -m paddle.distributed.launch ${distributed_args} --log_dir log \
        --model_save_dir=output/ \
        --with_mem_opt=False \
        --lr_strategy=piecewise_decay \
-       --lr=${LR}\
+       --lr=0.001\
        --num_epochs=${NUM_EPOCHS} \
-       --profile=${PROFILE} \
        --l2_decay=1e-4 \
-       --scale_loss=128.0 \
+       --scale_loss=1.0 \
+       --fuse=${FUSE} \
        --num_threads=${NUM_THREADS} \
        --nccl_comm_num=${NCCL_COMM_NUM} \
        --use_hierarchical_allreduce=${USE_HIERARCHICAL_ALLREDUCE} \
        --fp16=${USE_FP16}
+
 
 
