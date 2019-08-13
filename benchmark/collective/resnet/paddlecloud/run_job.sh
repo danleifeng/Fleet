@@ -84,7 +84,6 @@ case "${fuse}" in
     *) echo "not support argument -method: ${fuse}" ; exit 1 ;;
 esac
 sed -i "s:^\(fuse\s*=\s*\).*$:\1${fuse}:" config.ini
-echo "====fuse : ${fuse}"
 
 sed -i "s:^\(nodes\s*=\s*\).*$:\1${num_trainers}:" config.ini
 #sed -i "s:^\(shuffle_files\s*=\s*\).*$:\1${shuffle_files}:" config.ini
