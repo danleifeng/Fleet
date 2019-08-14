@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLAGS_sync_nccl_allreduce=0
+export FLAGS_sync_nccl_allreduce=1
 export FLAGS_cudnn_exhaustive_search=0
 
 export GLOG_v=1
@@ -11,7 +11,7 @@ unset https_proxy http_proxy
 
 set -xe
 
-MODEL=ResNet50
+MODEL=ResNet50 #VGG16
 MODEL_SAVE_PATH="output/"
 
 # training params
@@ -21,7 +21,7 @@ LR=0.001
 LR_STRATEGY=piecewise_decay
 
 # data params
-DATA_PATH="/fengdanlei/ImageNet"
+DATA_PATH="./ImageNet"
 TOTAL_IMAGES=1281167
 CLASS_DIM=1000
 IMAGE_SHAPE=3,224,224
@@ -66,3 +66,4 @@ python -m paddle.distributed.launch ${distributed_args} --log_dir log \
        --nccl_comm_num=${NCCL_COMM_NUM} \
        --use_hierarchical_allreduce=${USE_HIERARCHICAL_ALLREDUCE} \
        --fp16=${FP16}
+
