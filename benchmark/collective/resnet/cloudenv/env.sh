@@ -13,7 +13,7 @@ export FLAGS_eager_delete_tensor_gb=0.0
 
 #Cudnn
 export FLAGS_sync_nccl_allreduce=1
-export FLAGS_cudnn_exhaustive_search=0
+export FLAGS_cudnn_exhaustive_search=1
 
 #proxy
 unset https_proxy http_proxy

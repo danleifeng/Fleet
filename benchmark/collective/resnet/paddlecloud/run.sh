@@ -6,8 +6,8 @@ num_epochs=10
 #profile=False
 use_hierarchical_allreduce=False
 batch_size=32
-#dataset_path=/user/NLP_KM_Data/gongweibao/image_classify/dataset/ImageNet/large/ImageNet.tar
-dataset_path=/user/NLP_KM_Data/gongweibao/image_classify/dataset/ImageNet/small/ImageNet.tar
+dataset_path=/user/NLP_KM_Data/gongweibao/image_classify/dataset/ImageNet/large/ImageNet.tar
+#dataset_path=/user/NLP_KM_Data/gongweibao/image_classify/dataset/ImageNet/small/ImageNet.tar
 echo "test ${num_trainers} whl_name:{$whl_name}"
 
 #trainers 1
@@ -15,7 +15,7 @@ num_trainers=1
 nccl_comm_num=1
 ./run_job.sh \
     -num_trainers ${num_trainers}\
-    -job resnet_n${num_trainers}_fuse_thread2_001 \
+    -job ResNet50_n${num_trainers}_benchmark_epoch${num_epochs} \
     -fuse True \
     -nccl_comm_num 1 \
     -num_threads 2 \
