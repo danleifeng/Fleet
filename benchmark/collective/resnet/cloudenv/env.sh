@@ -4,7 +4,7 @@ export BASE_PATH="$PWD"
 #NCCL
 export NCCL_DEBUG=INFO
 export NCCL_IB_GID_INDEX=3
-export NCCL_IB_RETRY_CNT=0
+export NCCL_IB_RETRY_CNT=7
 
 #PADDLE
 export FLAGS_fraction_of_gpu_memory_to_use=0.98

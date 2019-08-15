@@ -53,6 +53,7 @@ from paddle.fluid.contrib.mixed_precision.fp16_utils import create_master_params
 import paddle.fluid.contrib.mixed_precision.fp16_lists as amp_lists
 from paddle.fluid.incubate.fleet.collective import fleet, DistributedStrategy
 import paddle.fluid.incubate.fleet.base.role_maker as role_maker
+import paddle.fluid.profiler as profiler
 
 num_trainers = int(os.environ.get('PADDLE_TRAINERS_NUM', 1))
 trainer_id = int(os.environ.get('PADDLE_TRAINER_ID'))
@@ -95,6 +96,7 @@ add_arg('nccl_comm_num',        int,  1,                  "nccl comm num")
 add_arg("use_hierarchical_allreduce",     bool,   False,   "Use hierarchical allreduce or not.")
 add_arg('num_threads',        int,  1,                   "Use num_threads to run the fluid program.")
 add_arg('num_iteration_per_drop_scope', int,    30,      "Ihe iteration intervals to clean up temporary variables.")
+add_arg('profile',             bool,  True,                "Enable profiler or not." )
 
 def optimizer_setting(params):
     ls = params["learning_strategy"]
@@ -107,7 +109,9 @@ def optimizer_setting(params):
         batch_size = ls["batch_size"]
         step = int(math.ceil(float(images_per_trainer) / batch_size))
         bd = [step * e for e in ls["epochs"]]
-        base_lr = params["lr"]
+        start_lr = params["lr"]
+        global_batch_size = num_trainers * 8 * batch_size
+        base_lr = start_lr * global_batch_size / 256
         lr = []
         lr = [base_lr * (0.1**i) for i in range(len(bd) + 1)]
         optimizer = fluid.optimizer.Momentum(
@@ -455,7 +459,7 @@ def train(args):
                 if use_mixup:
                     loss, lr = train_exe.run(train_prog, fetch_list=train_fetch_list)
                 else:
-		    loss, acc1, acc5, lr = train_exe.run(train_prog, fetch_list=train_fetch_list)
+                    loss, acc1, acc5, lr = train_exe.run(train_prog, fetch_list=train_fetch_list)
 
                     acc1 = np.mean(np.array(acc1))
                     acc5 = np.mean(np.array(acc5))
@@ -465,6 +469,17 @@ def train(args):
                 t2 = time.time()
                 period = t2 - t1
                 time_record.append(period)
+
+                if args.profile and batch_id == 30:
+                    print("begin profiler")
+                    if trainer_id == 0:
+                        profiler.start_profiler("All")
+                elif args.profile and batch_id == 35:
+                    print("begin to end profiler")
+                    if trainer_id == 0:
+                        profiler.stop_profiler("total", "./profile_%d" % (trainer_id))
+                    print("end profiler break!")
+                    args.profile=False
 
                 loss = np.mean(np.array(loss))
                 train_info[0].append(loss)
@@ -578,4 +593,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 

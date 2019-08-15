@@ -11,7 +11,7 @@ unset https_proxy http_proxy
 
 set -xe
 
-MODEL=ResNet50 #VGG16
+MODEL=VGG16 #VGG16
 MODEL_SAVE_PATH="output/"
 
 # training params
@@ -21,7 +21,7 @@ LR=0.001
 LR_STRATEGY=piecewise_decay
 
 # data params
-DATA_PATH="./ImageNet"
+DATA_PATH="/fengdanlei/ImageNet"
 TOTAL_IMAGES=1281167
 CLASS_DIM=1000
 IMAGE_SHAPE=3,224,224
@@ -46,7 +46,7 @@ fi
 
 set -x
 
-python -m paddle.distributed.launch ${distributed_args} --log_dir log \
+python -m paddle.distributed.launch ${distributed_args} --log_dir vgg_log \
        ./train_with_fleet.py \
        --model=${MODEL} \
        --batch_size=${BATCH_SIZE} \
