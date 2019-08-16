@@ -11,11 +11,11 @@ unset https_proxy http_proxy
 
 set -xe
 
-MODEL=VGG16 #VGG16
+MODEL=ResNet50 #VGG16
 MODEL_SAVE_PATH="output/"
 
 # training params
-NUM_EPOCHS=90
+NUM_EPOCHS=10
 BATCH_SIZE=32
 LR=0.001
 LR_STRATEGY=piecewise_decay
@@ -32,7 +32,7 @@ FUSE=True
 NCCL_COMM_NUM=1
 NUM_THREADS=2
 USE_HIERARCHICAL_ALLREDUCE=False
-NUM_CARDS=8
+NUM_CARDS=1
 FP16=False #whether to use float16 
 
 if [[ ${FUSE} == "True" ]]; then
@@ -46,7 +46,7 @@ fi
 
 set -x
 
-python -m paddle.distributed.launch ${distributed_args} --log_dir vgg_log \
+python -m paddle.distributed.launch ${distributed_args} --log_dir resnet_log \
        ./train_with_fleet.py \
        --model=${MODEL} \
        --batch_size=${BATCH_SIZE} \

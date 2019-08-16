@@ -12,11 +12,11 @@ echo "test ${num_trainers} whl_name:{$whl_name}"
 
 # VGG16 ResNet50
 #trainers 1
-num_trainers=4
+num_trainers=2
 nccl_comm_num=1
 ./run_job.sh \
     -num_trainers ${num_trainers}\
-    -job VGG16_n${num_trainers}_benchmark_epoch${num_epochs} \
+    -job ResNet50_n${num_trainers}_benchmark_epoch${num_epochs} \
     -fuse True \
     -nccl_comm_num 1 \
     -num_threads 2 \

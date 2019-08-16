@@ -109,9 +109,7 @@ def optimizer_setting(params):
         batch_size = ls["batch_size"]
         step = int(math.ceil(float(images_per_trainer) / batch_size))
         bd = [step * e for e in ls["epochs"]]
-        start_lr = params["lr"]
-        global_batch_size = num_trainers * 8 * batch_size
-        base_lr = start_lr * global_batch_size / 256
+        base_lr = params["lr"]
         lr = []
         lr = [base_lr * (0.1**i) for i in range(len(bd) + 1)]
         optimizer = fluid.optimizer.Momentum(
