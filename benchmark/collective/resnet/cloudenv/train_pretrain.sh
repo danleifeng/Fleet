@@ -29,7 +29,7 @@ fi
 
 python -m paddle.distributed.launch ${distributed_args} --log_dir log \
        ./train_with_fleet.py \
-       --model=ResNet50 \
+       --model=VGG16 \
        --batch_size=${BATCH_SIZE} \
        --total_images=1281167 \
        --data_dir=./ImageNet \
@@ -38,7 +38,7 @@ python -m paddle.distributed.launch ${distributed_args} --log_dir log \
        --model_save_dir=output/ \
        --with_mem_opt=False \
        --lr_strategy=piecewise_decay \
-       --lr=0.2\
+       --lr=0.1\
        --num_epochs=${NUM_EPOCHS} \
        --l2_decay=1e-4 \
        --scale_loss=1.0 \
