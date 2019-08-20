@@ -281,7 +281,12 @@ def train(args):
 
     if args.init_checkpoint and args.init_checkpoint != "":
         init_checkpoint(exe, args.init_checkpoint, train_program, args.use_fp16)
-
+    
+    data_reader = psp.DataReader(args.data_dir,
+                        batch_size=args.batch_size,
+                        in_tokens=args.in_tokens,
+                        epoch=args.epoch)
+'''
     data_reader = DataReader(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
@@ -291,7 +296,7 @@ def train(args):
         epoch=args.epoch,
         max_seq_len=args.max_seq_len,
         generate_neg_sample=args.generate_neg_sample)
-
+'''
     
     train_exe = exe
 
