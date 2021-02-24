@@ -13,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-from .util import *
+import paddle
+paddle.enable_static()
 import sysconfig
+from .util import *
 import paddle.distributed.fleet as fleet
+from fleetx.version import fleetx_version
 from fleetx.dataset.image_dataset import image_dataloader_from_filelist
 from fleetx.dataset.bert_dataset import load_bert_dataset
 from fleetx.dataset.transformer_dataset import transformer_data_generator
 from fleetx.dataset.word2vec_dataset import load_w2v_dataset
-from fleetx.version import fleetx_version
+from fleetx.dataset.word2vec_reader import load_w2v_reader
 from fleetx.dataset.ctr_data_generator import get_dataloader
 from fleetx import utils
 
@@ -84,6 +87,17 @@ def download_model(fleet_path, model_name):
     else:
         while not os.path.exists(fleet_path + model_name):
             time.sleep(3)
+
+
+def mpi_download_model(fleet_path, model_name):
+    """
+    Download pre-saved model if it does not exist in your local path.
+    """
+    version = fleetx_version.replace('-', '')
+    if not os.path.exists(fleet_path + model_name):
+        if not os.path.exists(fleet_path + model_name + '.tar.gz'):
+            os.system("cp {}.tar.gz {}".format(model_name, fleet_path))
+            os.system('tar -xzf {}{}.tar.gz -C {}'.format(fleet_path, model_name, fleet_path))
 
 
 class Resnet50(ModelBase):
@@ -286,22 +300,31 @@ class Transformer(ModelBase):
         self.checkpoints = checkpoints
         self.target = target
 
-    def get_train_dataloader(self,
-                             src_vocab_fpath,
-                             trg_vocab_fpath,
-                             train_file_pattern,
-                             batch_size=2048,
-                             shuffle=True):
+    def get_train_dataloader(self, local_path, batch_size=2048, shuffle=True):
         """
         Load WMT data from local path. 
         """
         return transformer_data_generator(
-            src_vocab_fpath,
-            trg_vocab_fpath,
-            train_file_pattern,
+            src_vocab_fpath='{}/vocab_all.bpe.32000'.format(local_path),
+            trg_vocab_fpath='{}/vocab_all.bpe.32000'.format(local_path),
+            train_filelist='{}/train.txt'.format(local_path),
             inputs=self.inputs,
             batch_size=batch_size,
-            shuffle=shuffle)
+            shuffle=shuffle,
+            phase="train")
+
+    def get_val_dataloader(self, local_path, batch_size=2048, shuffle=False):
+        """
+        Load WMT data from local path.
+        """
+        return transformer_data_generator(
+            src_vocab_fpath='{}/vocab_all.bpe.32000'.format(local_path),
+            trg_vocab_fpath='{}/vocab_all.bpe.32000'.format(local_path),
+            train_filelist='{}/val.txt'.format(local_path),
+            inputs=self.inputs,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            phase="val")
 
 
 class BertLarge(ModelBase):
@@ -354,8 +377,10 @@ class BertLarge(ModelBase):
         """
         Load train Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -375,8 +400,10 @@ class BertLarge(ModelBase):
         """
         Load val Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -435,8 +462,10 @@ class BertHuge(ModelBase):
         """
         Load train Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -456,8 +485,10 @@ class BertHuge(ModelBase):
         """
         Load val Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -516,8 +547,10 @@ class BertGiant(ModelBase):
         """
         Load train Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -537,8 +570,10 @@ class BertGiant(ModelBase):
         """
         Load val Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -600,6 +635,8 @@ class BertBase(ModelBase):
         """
         Load train Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
             batch_size = int(batch_size / max_seq_len)
 
@@ -622,8 +659,10 @@ class BertBase(ModelBase):
         """
         Load train Wiki data of language defined in model from local path.
         """
+        assert batch_size >= max_seq_len, "batch_size should not less than max_seq_len, while get batch_size={} and max_seq_len={}".format(
+            batch_size, max_seq_len)
         if not in_tokens:
-            batch_size = batch_size / max_seq_len
+            batch_size = int(batch_size / max_seq_len)
         return load_bert_dataset(
             data_dir,
             inputs=self.inputs,
@@ -719,3 +758,44 @@ class Resnet50Mlperf(ModelBase):
             shuffle,
             use_dali,
             data_layout=data_layout)
+
+
+class Word2vec(ModelBase):
+    def __init__(self):
+        super(Word2vec, self).__init__()
+        fleet_path = sysconfig.get_paths()["purelib"] + '/fleetx/applications/'
+        model_name = 'word2vec'
+        mpi_download_model(fleet_path, model_name)
+        inputs, loss, startup, main, unique_generator, checkpoints, target = load_program(
+            fleet_path + model_name)
+
+        self.inputs = inputs
+        self.startup_prog = startup
+        self.main_prog = main
+        self.loss = loss
+        self.checkpoints = checkpoints
+        self.target = target
+
+    def load_dataset_from_file(self,
+                              dict_path,
+                              file_list,
+                              window_size=5,
+                              nce_num=5,
+                              batch_size=100):
+        pipe_command = "python {}/fleetx/dataset/word2vec_dataset.py {} {} {} {}".format(sysconfig.get_paths()["purelib"], dict_path, window_size, batch_size, nce_num)
+        thread_num = int(os.getenv("CPU_NUM", "1"))
+        return load_w2v_dataset(self.inputs, file_list, pipe_command, batch_size, thread_num)
+
+    def load_reader_from_file(self,
+                              dict_path,
+                              file_list,
+                              nce_num=5,
+                              batch_size=1000,
+                              shuffle=True):
+        return load_w2v_reader(
+            self.inputs,
+            file_list,
+            dict_path=dict_path,
+            nce_num=nce_num,
+            batch_size=batch_size,
+            shuffle=shuffle)

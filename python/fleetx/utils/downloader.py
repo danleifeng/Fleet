@@ -70,18 +70,6 @@ def get_file_shard(node_id, node_num, local_path):
 class Downloader(object):
     def __init__(self):
         self.need_barrier = False
-        if os.environ.get('PADDLE_TRAINER_ENDPOINTS') is not None:
-            endpoints = os.environ.get('PADDLE_TRAINER_ENDPOINTS').split(",")
-            current_endpoint = os.environ.get('PADDLE_CURRENT_ENDPOINT')
-            self.server_endpoint = endpoints[0]
-            self.server_port = self.server_endpoint.split(":")[1]
-            self.barrier_server = BarrierServer()
-            if current_endpoint == self.server_endpoint:
-                while net_is_used(self.server_port):
-                    time.sleep(3)
-                self.barrier_server.start_server_in_background(
-                    endpoint=self.server_endpoint, worker_endpoints=endpoints)
-            self.need_barrier = True
 
     def download_from_hdfs(self,
                            fs_yaml=None,
@@ -120,6 +108,19 @@ class Downloader(object):
 
             for proc in procs:
                 proc.join()
+
+        if os.environ.get('PADDLE_TRAINER_ENDPOINTS') is not None:
+            endpoints = os.environ.get('PADDLE_TRAINER_ENDPOINTS').split(",")
+            current_endpoint = os.environ.get('PADDLE_CURRENT_ENDPOINT')
+            self.server_endpoint = endpoints[0]
+            self.server_port = self.server_endpoint.split(":")[1]
+            self.barrier_server = BarrierServer()
+            if current_endpoint == self.server_endpoint:
+                while net_is_used(self.server_port):
+                    time.sleep(3)
+                self.barrier_server.start_server_in_background(
+                    endpoint=self.server_endpoint, worker_endpoints=endpoints)
+            self.need_barrier = True
 
         if is_first_worker():
             if not os.path.exists(local_path):
@@ -160,15 +161,22 @@ class Downloader(object):
                 raise Exception(
                     "ERROR: Your data dir should include filelist.txt and meta.txt"
                 )
-            client.download('{}/filelist.txt'.format(hdfs_path),
-                            '{}/filelist.txt'.format(local_path))
-            client.download('{}/meta.txt'.format(hdfs_path),
-                            '{}/meta.txt'.format(local_path))
+
+            if not os.path.exists('{}/filelist.txt'.format(local_path)):
+                client.download('{}/filelist.txt'.format(hdfs_path),
+                                '{}/filelist.txt'.format(local_path))
+            if not os.path.exists('{}/meta.txt'.format(local_path)):
+                client.download('{}/meta.txt'.format(hdfs_path),
+                                '{}/meta.txt'.format(local_path))
+
             with open('{}/meta.txt'.format(local_path), 'r') as fin:
                 for line in fin:
                     current_file = line.strip()
-                    client.download('{}/{}'.format(hdfs_path, current_file),
-                                    '{}/{}'.format(local_path, current_file))
+                    if not os.path.exists('{}/{}'.format(local_path,
+                                                         current_file)):
+                        client.download(
+                            '{}/{}'.format(hdfs_path, current_file),
+                            '{}/{}'.format(local_path, current_file))
 
         if shard_num > 0:
             assert (
@@ -227,6 +235,19 @@ class Downloader(object):
 
             for proc in procs:
                 proc.join()
+
+        if os.environ.get('PADDLE_TRAINER_ENDPOINTS') is not None:
+            endpoints = os.environ.get('PADDLE_TRAINER_ENDPOINTS').split(",")
+            current_endpoint = os.environ.get('PADDLE_CURRENT_ENDPOINT')
+            self.server_endpoint = endpoints[0]
+            self.server_port = self.server_endpoint.split(":")[1]
+            self.barrier_server = BarrierServer()
+            if current_endpoint == self.server_endpoint:
+                while net_is_used(self.server_port):
+                    time.sleep(3)
+                self.barrier_server.start_server_in_background(
+                    endpoint=self.server_endpoint, worker_endpoints=endpoints)
+            self.need_barrier = True
 
         if is_first_worker():
             if not os.path.exists(local_path):
