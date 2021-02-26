@@ -71,7 +71,7 @@ PaddlePaddle基于工业实践，创新性的提出了异构参数服务器，�
 
 - docker准备：为了避免环境引起的运行错误，这里强烈推荐使用docker容器运行本示例，docker镜像地址：paddlefleet/heterps:centos_gcc4.8.2_cuda10.2_cudnn7
 
-- 版本要求：paddlepaddle-2.0.1-gpu及以上版本的飞桨开源框架。推荐使用以下链接下载最新whl: https://paddlepaddledeps.bj.bcebos.com/heterps/paddlepaddle_gpu-0.0.0-cp27-cp27mu-linux_x86_64.whl 。 
+- 版本要求：paddlepaddle-2.0.1-gpu及以上版本的飞桨开源框架。推荐使用以下链接下载最新whl:https://pslib.bj.bcebos.com/heterps/paddlepaddle_gpu-0.0.0-cp27-cp27mu-linux_x86_64.whl
 
 docker镜像中已预装好CUDA、Cudnn、NCCL、paddlepaddle等所有环境，paddlepaddle安装可省略，如若有版本更新，可自行下载whl包后执行\ ``reinstall_paddle.sh``\ 进行安装。
 
